@@ -1,0 +1,104 @@
+version: "3"
+services:
+
+  el-client:
+    hostname: el-client
+    container_name: el-client
+    image: nethermind/nethermind:latest restart: always
+    stop_grace_period: 1m
+    command: |
+      --datadir=/data
+    networks:
+      gnosis_net:
+        ipv4_address: 192.168.32.100
+    ports:
+      - "30303:30303/tcp"
+      - "30303:30303/udp"
+    volumes:
+      - /home/$USER/gnosis/el-client:/data
+      - /home/$USER/gnosis/jwtsecret/jwtsecret:/jwtsecret
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - NETHERMIND_CONFIG=xdai_archive
+      - NETHERMIND_JSONRPCCONFIG_ENABLED=true
+      - NETHERMIND_JSONRPCCONFIG_HOST=192.168.32.100
+      - NETHERMIND_JSONRPCCONFIG_PORT=8545
+      - NETHERMIND_JSONRPCCONFIG_JWTSECRETFILE=/jwtsecret
+      - NETHERMIND_JSONRPCCONFIG_ENGINEHOST=192.168.32.100
+      - NETHERMIND_JSONRPCCONFIG_ENGINEPORT=8551
+      - NETHERMIND_MERGECONFIG_ENABLED=true
+    logging:
+      driver: "local"
+
+  cl-client:
+    hostname: cl-client
+    container_name: cl-client
+    image: chainsafe/lodestar:latest
+    restart: always
+    depends_on:
+      - el-client
+    command: |
+      beacon
+      --network gnosis
+      --dataDir /data
+      --rest
+      --rest.address 0.0.0.0
+      --logFile /logs/beacon.log
+      --logFileLevel info
+      --logFileDailyRotate 5
+      --weakSubjectivitySyncLatest
+      --weakSubjectivityServerUrl $CHECKPOINT_URL
+    networks:
+      gnosis_net:
+        ipv4_address: 192.168.32.101
+    ports:
+      - "9000:9000" #p2p
+#      - "9596:9596" # REST API port
+    volumes:
+      - /home/$USER/gnosis/cl-client/data:/data
+      - /home/$USER/gnosis/cl-client/logs:/logs
+      - /home/$USER/gnosis/jwtsecret/jwtsecret:/jwtsecret
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=4096
+    logging:
+      driver: "local"
+
+  validator:
+    hostname: validator
+    container_name: validator
+    image: chainsafe/lodestar:latest
+    restart: always
+    depends_on:
+      - cl-client
+    command: |
+      validator
+      --dataDir /data
+      --importKeystores /keystores
+      --importKeystoresPassword /keystores/password.txt
+      --server http://192.168.32.101:9596
+      --logFile /logs/validator.log
+      --logFileLevel info
+      --logFileDailyRotate 5
+    networks:
+      gnosis_net:
+        ipv4_address: 192.168.32.102
+    volumes:
+      - /home/$USER/gnosis/cl-client/validators:/data/validators
+      - /home/$USER/gnosis/cl-client/logs:/logs
+      - /home/$USER/gnosis/keystores:/keystores
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=4096
+    logging:
+      driver: "local"
+
+networks:
+  gnosis_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.32.0/24
