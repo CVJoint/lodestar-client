@@ -21,7 +21,6 @@ docker pull chainsafe/lodestar:latest
 mkdir -p /home/$USER/gnosis/el-client
 mkdir -p /home/$USER/gnosis/cl-client/data
 mkdir /home/$USER/gnosis/cl-client/keystores
-mkdir /home/$USER/gnosis/cl-client/logs
 mkdir /home/$USER/gnosis/cl-client/validators
 mkdir /home/$USER/gnosis/jwtsecret
 ```
@@ -32,7 +31,7 @@ mkdir /home/$USER/gnosis/jwtsecret
 WAN_IP:123.456.789.012
 FEE_RECIPIENT=0x0000000000000000000000000000000000000000
 GRAFFITI=gnosischain/lighthouse
-CHECKPOINT_URL=https://rpc-gbc.gnosischain.com/
+CHECKPOINT_URL=https://checkpoint.gnosischain.com/
 ```
 
 3. Add your keystores in `/home/$USER/gnosis/cl-client/keystores` and their password in a file `/home/$USER/gnosis/cl-client/keystores/password.txt` to get this file structure:
