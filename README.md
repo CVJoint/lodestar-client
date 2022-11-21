@@ -48,14 +48,13 @@ CHECKPOINT_URL=https://checkpoint.gnosischain.com/
     │   ├── keystore-001.json
     │   ├── keystore-002.json
     │   └── password.txt
-    ├── logs/
     └── validators/
 ```
 
-4. Create a new `./jwtsecret` token:
+4. Create a new `./jwtsecret.json` token:
 
 ```
-openssl rand -hex 32 | tr -d "\n" > /home/$USER/gnosis/jwtsecret/jwtsecret
+openssl rand -hex 32 | tr -d "\n" > /home/$USER/gnosis/jwtsecret/jwtsecret.json
 ```
 
 5. Import your validators:
